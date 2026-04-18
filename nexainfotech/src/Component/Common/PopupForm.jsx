@@ -74,15 +74,9 @@ export default function PopupForm() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
-    // Check if permanently dismissed (submitted)
-    if (localStorage.getItem("popupSubmitted")) return;
-
-    // Check if shown in this session
-    if (sessionStorage.getItem("popupShown")) return;
-
+    // Show on every refresh with a 5-second delay
     const timer = setTimeout(() => {
       setIsOpen(true);
-      sessionStorage.setItem("popupShown", "true");
     }, 5000);
     return () => clearTimeout(timer);
   }, []);
@@ -112,6 +106,7 @@ export default function PopupForm() {
         ...formData,
         countryName: selectedCountry.name || "India",
         phone: formData.phone.trim() ? `${formData.countryCode} ${formData.phone}` : "",
+        source: 'popup'
       };
 
       await axios.post("/api/contact", submissionData);

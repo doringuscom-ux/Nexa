@@ -1,46 +1,43 @@
-// controllers/contactController.js
 const Contact = require("../models/Contact");
 const { sendAdminEmail } = require("../config/emailConfig");
+const { appendPopupLead } = require("../config/googleSheets");
 
 /* CREATE CONTACT */
 const createContact = async (req, res) => {
   try {
-    const { name, phone, email, message } = req.body;
+    const { name, phone, email, message, source } = req.body;
 
-    console.log('📝 Received contact form submission:', { name, email, phone });
+    console.log(`📝 Received ${source || 'direct'} contact form submission:`, { name, email, phone });
 
-    // Validation
-    if (!name || !email || !message) {
+    // Validation (Popup forms have optional fields now, but we check if everything is empty)
+    if (!name && !email && !phone && !message) {
       return res.status(400).json({
         success: false,
-        message: "❌ Name, email and message are required"
-      });
-    }
-
-    // Email format validation
-    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "❌ Invalid email address"
+        message: "❌ At least one field is required"
       });
     }
 
     // 1. Database mein save karo
     const newMessage = new Contact({
-      name: name.trim(),
-      phone: phone?.trim() || '',
-      email: email.trim().toLowerCase(),
-      message: message.trim(),
+      name: (name || '').trim(),
+      phone: (phone || '').trim(),
+      email: (email || '').trim().toLowerCase(),
+      message: (message || '').trim(),
     });
 
     await newMessage.save();
     console.log('✅ Contact saved to database. ID:', newMessage._id);
 
-    // 2. Email bhejo admin ko (background mein)
-    console.log('📬 Attempting to send admin email...');
-    console.log('🔑 RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
+    // 2. Google Sheets Update (Only for Popups)
+    if (source === 'popup' && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
+      console.log('📊 Synchronizing with Google Sheets...');
+      // Don't await - let it run in background to keep response fast
+      appendPopupLead({ name, email, phone, message }).catch(err => {
+        console.error('⚠️ Google Sheets Sync Error:', err.message);
+      });
+    }
 
+    // 3. Email bhejo admin ko (background mein)
     if (process.env.RESEND_API_KEY) {
       // Don't await - let it run in background
       sendAdminEmail({ name, phone, email, message })
