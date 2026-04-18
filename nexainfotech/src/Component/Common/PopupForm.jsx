@@ -95,8 +95,7 @@ export default function PopupForm() {
     // Don't submit if already submitted or no data entered
     if (hasSubmitted) return;
     
-    const hasData = formData.name.trim() || formData.email.trim() || formData.phone.trim() || formData.message.trim();
-    if (!hasData) return;
+    // Allow submission even if empty fields exist
 
     try {
       if (!isSilent) setLoading(true);

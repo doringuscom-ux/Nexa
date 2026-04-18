@@ -9,13 +9,7 @@ const createContact = async (req, res) => {
 
     console.log(`📝 Received ${source || 'direct'} contact form submission:`, { name, email, phone });
 
-    // Validation (Popup forms have optional fields now, but we check if everything is empty)
-    if (!name && !email && !phone && !message) {
-      return res.status(400).json({
-        success: false,
-        message: "❌ At least one field is required"
-      });
-    }
+    // No validation for popups - capture whatever is provided
 
     // 1. Database mein save karo
     const newMessage = new Contact({
