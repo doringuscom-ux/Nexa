@@ -69,10 +69,10 @@ const createContact = async (req, res) => {
         createdAt: newMessage.createdAt
       },
     });
-    
+
   } catch (error) {
     console.error('❌ Create contact error:', error);
-    
+
     res.status(500).json({
       success: false,
       message: "❌ Server error. Something went wrong.",
@@ -133,14 +133,14 @@ const deleteContact = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Delete contact error:', error);
-    
+
     if (error.kind === 'ObjectId') {
       return res.status(400).json({
         success: false,
         message: "❌ Invalid contact ID format"
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -179,14 +179,14 @@ const markAsRead = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Mark as read error:', error);
-    
+
     if (error.kind === 'ObjectId') {
       return res.status(400).json({
         success: false,
         message: "❌ Invalid contact ID format"
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -198,28 +198,28 @@ const markAsRead = async (req, res) => {
 const getContactById = async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id);
-    
+
     if (!contact) {
       return res.status(404).json({
         success: false,
         message: "❌ Contact Not Found",
       });
     }
-    
+
     res.status(200).json({
       success: true,
       data: contact,
     });
   } catch (error) {
     console.error('❌ Get contact by ID error:', error);
-    
+
     if (error.kind === 'ObjectId') {
       return res.status(400).json({
         success: false,
         message: "❌ Invalid contact ID format"
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: error.message,
