@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const compression = require("compression");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const Service = require("./models/Service");
@@ -10,11 +11,37 @@ const Blog = require("./models/Blog");
 const Page = require("./models/Page");
 
 const app = express();
+app.use(compression()); // Compress all responses
 
 /* ================= DATABASE ================= */
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected ✅"))
-  .catch(err => console.log("Mongo Error ❌", err));
+const mongoOptions = {
+  serverSelectionTimeoutMS: 5000, // Keep trying for 5 seconds
+  socketTimeoutMS: 45000,        // Close sockets after 45 seconds of inactivity
+  maxPoolSize: 10,               // Maintain up to 10 socket connections
+};
+
+const connectDB = async () => {
+  const start = Date.now();
+  try {
+    await mongoose.connect(process.env.MONGO_URI, mongoOptions);
+    const duration = Date.now() - start;
+    console.log(`MongoDB Connected ✅ (${duration}ms)`);
+  } catch (err) {
+    console.error("Mongo Error ❌", err);
+  }
+};
+
+connectDB();
+
+/* ================= HEARTBEAT ROUTE ================= */
+// Prevents Render from sleeping and Atlas from suspending
+app.get("/api/heartbeat", (req, res) => {
+  res.status(200).json({
+    status: "alive",
+    timestamp: new Date().toISOString(),
+    db: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+  });
+});
 
 /* ================= MIDDLEWARE ================= */
 app.set("trust proxy", 1); // Trust the first proxy (Render)
@@ -91,12 +118,34 @@ app.use("/api/heroes", require("./routes/heroRoutes"));
 app.use("/api/pages", require("./routes/pageRoutes"));
 app.use("/api/seo", require("./routes/seoRoutes"));
 
+/* ================= SITEMAP CACHING ================= */
+let cachedSitemap = null;
+let sitemapTimestamp = 0;
+const SITEMAP_CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+
+// Smart Cache Busting: Clear sitemap cache when data is modified
+app.use(["/api/services", "/api/blogs", "/api/pages", "/api/admin"], (req, res, next) => {
+  if (["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
+    console.log("♻️ Sitemap Cache Cleared due to data change");
+    cachedSitemap = null;
+    sitemapTimestamp = 0;
+  }
+  next();
+});
+
 /* ================= SITEMAP ================= */
 app.get("/sitemap.xml", async (req, res) => {
   const baseUrl = "https://nexainfotech.com";
   const staticPages = ["", "/about", "/blog", "/gallery", "/portfolio", "/contact"];
 
   try {
+    const now = Date.now();
+    // Return cached sitemap if still valid
+    if (cachedSitemap && (now - sitemapTimestamp < SITEMAP_CACHE_DURATION)) {
+      res.set("Content-Type", "application/xml");
+      return res.status(200).send(cachedSitemap);
+    }
+
     const services = await Service.find({}, "slug updatedAt");
     const blogs = await Blog.find({}, "slug updatedAt");
     const customPages = await Page.find({ isActive: true }, "pageId updatedAt");
@@ -128,6 +177,11 @@ app.get("/sitemap.xml", async (req, res) => {
     });
 
     xml += `\n</urlset>`;
+
+    // Save to cache
+    cachedSitemap = xml;
+    sitemapTimestamp = now;
+
     res.set("Content-Type", "application/xml");
     res.status(200).send(xml);
   } catch (err) {
