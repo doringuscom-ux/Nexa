@@ -74,10 +74,10 @@ export default function PopupForm() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
-    // Show on every refresh with a 5-second delay
+    // Show on every refresh with a 2-second delay
     const timer = setTimeout(() => {
       setIsOpen(true);
-    }, 5000);
+    }, 2000);
     return () => clearTimeout(timer);
   }, []);
 
