@@ -7,9 +7,18 @@ const appendPopupLead = async (data) => {
     const { name, email, phone, message } = data;
 
     // 1. Initialize Auth
+    // Robust key parsing to handle different environment variable formats
+    let privateKey = process.env.GOOGLE_PRIVATE_KEY;
+    if (privateKey) {
+      // Handle both literal newlines and escaped \n sequences
+      privateKey = privateKey.replace(/\\n/g, '\n');
+      // Remove leading/trailing quotes if they were accidentally included in the value
+      privateKey = privateKey.replace(/^"|"$/g, '');
+    }
+
     const serviceAccountAuth = new JWT({
       email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Handle newline characters in the key
+      key: privateKey,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
