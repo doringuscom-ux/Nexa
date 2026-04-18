@@ -32,7 +32,15 @@ const appendPopupLead = async (data) => {
     // 4. Get the first sheet (usually 'Sheet1')
     const sheet = doc.sheetsByIndex[0];
 
-    // 5. Append Row
+    // 5. Ensure headers exist (google-spreadsheet needs headers to match keys)
+    try {
+      await sheet.loadHeaderRow();
+    } catch (e) {
+      // If no headers, set them automatically
+      await sheet.setHeaderRow(['Date', 'Name', 'Email', 'Phone', 'Message', 'Source']);
+    }
+
+    // 6. Append Row
     await sheet.addRow({
       Date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
       Name: name || 'N/A',
