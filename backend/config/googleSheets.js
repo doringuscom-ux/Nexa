@@ -45,7 +45,7 @@ const appendPopupLead = async (data) => {
       Date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
       Name: name || 'N/A',
       Email: email || 'N/A',
-      Phone: phone || 'N/A',
+      Phone: phone ? `'${phone}` : 'N/A', // Prepend ' to prevent formula parse error
       Message: message || 'N/A',
       Source: 'Landing Page Popup'
     });
