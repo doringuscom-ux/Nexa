@@ -63,6 +63,12 @@ app.get("/api/heartbeat", (req, res) => {
   res.status(200).json(status);
 });
 
+// Alternative health route
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+
 
 
 
@@ -371,9 +377,10 @@ app.listen(PORT, () => {
   // Actually on Render? (Render sets RENDER=true or RENDER_EXTERNAL_URL)
   const isActualRender = !!process.env.RENDER || !!process.env.RENDER_EXTERNAL_URL;
   
-  const pingUrl = isActualRender && BACKEND_URL 
-    ? `${BACKEND_URL.replace(/\/$/, "")}/api/heartbeat`
-    : `http://localhost:${PORT}/api/heartbeat`;
+  // Use localhost for self-ping to avoid external routing issues and SSL overhead
+  // This still keeps the process active and verifies internal health
+  const pingUrl = `http://localhost:${PORT}/api/heartbeat`;
+
 
   const performPing = () => {
     const protocol = pingUrl.startsWith("https") ? https : http;
