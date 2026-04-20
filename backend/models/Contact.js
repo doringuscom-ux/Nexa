@@ -7,13 +7,13 @@ const contactSchema = new mongoose.Schema(
 
     },
     phone: String,
+
     email: {
       type: String,
-      required: true,
+
     },
     message: {
       type: String,
-      required: true,
     },
     isRead: {
       type: Boolean,
