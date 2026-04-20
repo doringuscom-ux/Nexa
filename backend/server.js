@@ -6,6 +6,7 @@ const cors = require("cors");
 const compression = require("compression");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
+const https = require("https");
 const Service = require("./models/Service");
 const Blog = require("./models/Blog");
 const Page = require("./models/Page");
@@ -36,11 +37,16 @@ connectDB();
 /* ================= HEARTBEAT ROUTE ================= */
 // Prevents Render from sleeping and Atlas from suspending
 app.get("/api/heartbeat", (req, res) => {
-  res.status(200).json({
+  const status = {
     status: "alive",
     timestamp: new Date().toISOString(),
-    db: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
-  });
+    db: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    uptime: process.uptime(),
+    memory: process.memoryUsage()
+  };
+  
+  console.log(`💓 Heartbeat check: ${status.db} | ${new Date().toLocaleString()}`);
+  res.status(200).json(status);
 });
 
 /* ================= MIDDLEWARE ================= */
@@ -337,4 +343,23 @@ app.listen(PORT, () => {
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📧 Resend Email: ${process.env.RESEND_API_KEY ? '✅ Configured' : '❌ Not configured'}`);
 
+  /* ================= SELF-PING SERVICE ================= */
+  const BACKEND_URL = process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL;
+  if (BACKEND_URL) {
+    console.log(`\n💓 Self-ping service started for: ${BACKEND_URL}`);
+    setInterval(() => {
+      const url = `${BACKEND_URL.replace(/\/$/, "")}/api/heartbeat`;
+      https.get(url, (res) => {
+        if (res.statusCode === 200) {
+          console.log(`🚀 Self-ping successful (${new Date().toLocaleTimeString()})`);
+        } else {
+          console.warn(`⚠️ Self-ping returned status: ${res.statusCode}`);
+        }
+      }).on("error", (err) => {
+        console.error("❌ Self-ping error:", err.message);
+      });
+    }, 14 * 60 * 1000); // 14 minutes interval
+  } else {
+    console.log("\n⚠️ BACKEND_URL not set. Self-ping service disabled.");
+  }
 });
