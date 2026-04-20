@@ -14,6 +14,18 @@ const Blog = require("./models/Blog");
 const Page = require("./models/Page");
 
 const app = express();
+
+/* ================= LOGGER ================= */
+// Absolute top logger to see everything
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    console.log(`${req.method} ${req.path} ${res.statusCode} (${duration}ms)`);
+  });
+  next();
+});
+
 app.use(compression()); // Compress all responses
 
 /* ================= DATABASE ================= */
@@ -51,18 +63,10 @@ app.get("/api/heartbeat", (req, res) => {
   res.status(200).json(status);
 });
 
-/* ================= LOGGER ================= */
-// Simple request logger to help debugging
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (req.path !== "/api/heartbeat") { // Don't spam logs with heartbeat
-      console.log(`${req.method} ${req.path} ${res.statusCode} (${duration}ms)`);
-    }
-  });
-  next();
-});
+
+
+
+
 
 
 /* ================= MIDDLEWARE ================= */
@@ -348,8 +352,10 @@ app.get("/", (req, res) => {
 
 /* ================= ERROR HANDLER ================= */
 app.use((req, res) => {
-  res.status(404).json({ message: "Route Not Found ❌" });
+  console.warn(`🚫 404 Not Found: ${req.method} ${req.path}`);
+  res.status(404).json({ message: "Route Not Found ❌", path: req.path });
 });
+
 
 /* ================= SERVER ================= */
 const PORT = process.env.PORT || 5000;
