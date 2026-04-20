@@ -7,6 +7,8 @@ const compression = require("compression");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const https = require("https");
+const http = require("http");
+
 const Service = require("./models/Service");
 const Blog = require("./models/Blog");
 const Page = require("./models/Page");
@@ -45,9 +47,23 @@ app.get("/api/heartbeat", (req, res) => {
     memory: process.memoryUsage()
   };
   
-  console.log(`💓 Heartbeat check: ${status.db} | ${new Date().toLocaleString()}`);
+  console.log(`\n💓 HEARTBEAT CHECK: ${status.db} | ${status.timestamp}`);
   res.status(200).json(status);
 });
+
+/* ================= LOGGER ================= */
+// Simple request logger to help debugging
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (req.path !== "/api/heartbeat") { // Don't spam logs with heartbeat
+      console.log(`${req.method} ${req.path} ${res.statusCode} (${duration}ms)`);
+    }
+  });
+  next();
+});
+
 
 /* ================= MIDDLEWARE ================= */
 app.set("trust proxy", 1); // Trust the first proxy (Render)
@@ -345,21 +361,33 @@ app.listen(PORT, () => {
 
   /* ================= SELF-PING SERVICE ================= */
   const BACKEND_URL = process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL;
-  if (BACKEND_URL) {
-    console.log(`\n💓 Self-ping service started for: ${BACKEND_URL}`);
-    setInterval(() => {
-      const url = `${BACKEND_URL.replace(/\/$/, "")}/api/heartbeat`;
-      https.get(url, (res) => {
-        if (res.statusCode === 200) {
-          console.log(`🚀 Self-ping successful (${new Date().toLocaleTimeString()})`);
-        } else {
-          console.warn(`⚠️ Self-ping returned status: ${res.statusCode}`);
-        }
-      }).on("error", (err) => {
-        console.error("❌ Self-ping error:", err.message);
-      });
-    }, 14 * 60 * 1000); // 14 minutes interval
-  } else {
-    console.log("\n⚠️ BACKEND_URL not set. Self-ping service disabled.");
-  }
+  
+  // Actually on Render? (Render sets RENDER=true or RENDER_EXTERNAL_URL)
+  const isActualRender = !!process.env.RENDER || !!process.env.RENDER_EXTERNAL_URL;
+  
+  const pingUrl = isActualRender && BACKEND_URL 
+    ? `${BACKEND_URL.replace(/\/$/, "")}/api/heartbeat`
+    : `http://localhost:${PORT}/api/heartbeat`;
+
+  const performPing = () => {
+    const protocol = pingUrl.startsWith("https") ? https : http;
+    protocol.get(pingUrl, (res) => {
+      if (res.statusCode === 200) {
+        console.log(`🚀 Self-ping successful (${new Date().toLocaleTimeString()})`);
+      } else {
+        console.warn(`⚠️ Self-ping returned status: ${res.statusCode}`);
+      }
+    }).on("error", (err) => {
+      console.error("❌ Self-ping error:", err.message);
+    });
+  };
+
+  console.log(`\n💓 Self-ping service started for: ${pingUrl}`);
+  
+  // 1. Initial immediate ping to verify it's working
+  setTimeout(performPing, 2000); // Wait 2s for server to be fully ready
+  
+  // 2. Periodic pings every 14 minutes
+  setInterval(performPing, 14 * 60 * 1000);
 });
+
