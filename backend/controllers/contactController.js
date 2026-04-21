@@ -9,7 +9,30 @@ const createContact = async (req, res) => {
 
     console.log(`📝 Received ${source || 'direct'} contact form submission:`, { name, email, phone });
 
-    // No validation for popups - capture whatever is provided
+    // 1. Validation
+    if (!name || name.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "❌ Name is required.",
+      });
+    }
+
+    if (!email && !phone) {
+      return res.status(400).json({
+        success: false,
+        message: "❌ Please provide at least an Email or Phone number.",
+      });
+    }
+
+    // Optional: Basic email format validation if email is provided
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "❌ Please provide a valid email address.",
+      });
+    }
+
+    // No validation for popups - capture whatever is provided - MOVED UP
 
     // 1. Database mein save karo
     const newMessage = new Contact({
