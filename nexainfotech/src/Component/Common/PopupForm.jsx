@@ -74,6 +74,20 @@ export default function PopupForm() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
+    // Load saved user data from localStorage
+    const savedData = localStorage.getItem("nexa_lead_user_data");
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setFormData(prev => ({
+          ...prev,
+          ...parsedData
+        }));
+      } catch (error) {
+        console.error("Error parsing saved user data:", error);
+      }
+    }
+
     // Show on every refresh with a 2-second delay
     const timer = setTimeout(() => {
       setIsOpen(true);
@@ -89,6 +103,8 @@ export default function PopupForm() {
     setFormData({ ...formData, countryCode: code });
     setIsDropdownOpen(false);
   };
+
+
 
   // Common submission logic
   const performSubmission = async (isSilent = false) => {
@@ -111,6 +127,15 @@ export default function PopupForm() {
       await axios.post("/api/contact", submissionData);
       setHasSubmitted(true);
       localStorage.setItem("popupSubmitted", "true");
+      
+      // Save user data for auto-fill in other forms
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        countryCode: formData.countryCode
+      };
+      localStorage.setItem("nexa_lead_user_data", JSON.stringify(userData));
 
       if (!isSilent) {
         alert("Inquiry Sent Successfully! We will contact you soon. 🚀");
@@ -168,36 +193,43 @@ export default function PopupForm() {
               <XMarkIcon className="w-6 h-6" />
             </button>
 
-            <div className="p-8 sm:p-10">
-              <div className="mb-8">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full mb-4">
-                  <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                  <span className="text-cyan-400 text-xs font-bold tracking-wider uppercase">Quick Inquiry</span>
+            <div className="p-6 sm:p-10">
+              <div className="mb-6 sm:mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full w-fit">
+                    <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                    <span className="text-cyan-400 text-[10px] sm:text-xs font-bold tracking-wider uppercase">Quick Inquiry</span>
+                  </div>
                 </div>
-                <h2 className="text-3xl font-bold text-white mb-2">Let's Grow Together</h2>
-                <p className="text-gray-400">Fill out the form below and our experts will get back to you within 24 hours.</p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Let's Grow Together</h2>
+                <p className="text-gray-400 text-sm sm:text-base">Fill out the form below and our team will get back to you shortly.</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="relative group">
                   <input
                     type="text"
+                    id="popup-name"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="Your Name (Optional)"
-                    className="w-full py-4 px-6 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/20 focus:outline-none focus:border-cyan-400/50 focus:bg-cyan-400/5 transition-all"
+                    placeholder="Your Name"
+                    autoComplete="name"
+                    autoFocus
+                    className="w-full py-3.5 sm:py-4 px-5 sm:px-6 bg-white/5 border border-white/10 rounded-2xl text-white text-sm sm:text-base placeholder-white/20 focus:outline-none focus:border-cyan-400/50 focus:bg-cyan-400/5 transition-all"
                   />
                 </div>
 
                 <div className="relative group">
                   <input
                     type="email"
+                    id="popup-email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Email Address (Optional)"
-                    className="w-full py-4 px-6 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/20 focus:outline-none focus:border-cyan-400/50 focus:bg-cyan-400/5 transition-all"
+                    placeholder="Email Address"
+                    autoComplete="email"
+                    className="w-full py-3.5 sm:py-4 px-5 sm:px-6 bg-white/5 border border-white/10 rounded-2xl text-white text-sm sm:text-base placeholder-white/20 focus:outline-none focus:border-cyan-400/50 focus:bg-cyan-400/5 transition-all"
                   />
                 </div>
 
@@ -214,11 +246,13 @@ export default function PopupForm() {
                     </div>
                     <input
                       type="tel"
+                      id="popup-phone"
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="Phone Number (Optional)"
-                      className="flex-1 py-4 px-4 bg-transparent text-white placeholder-white/20 focus:outline-none"
+                      placeholder="Phone Number"
+                      autoComplete="tel"
+                      className="flex-1 py-3.5 sm:py-4 px-4 bg-transparent text-white text-sm sm:text-base placeholder-white/20 focus:outline-none"
                     />
                   </div>
 
@@ -257,8 +291,8 @@ export default function PopupForm() {
                     rows="3"
                     value={formData.message}
                     onChange={handleChange}
-                    placeholder="How can we help you? (Optional)"
-                    className="w-full py-4 px-6 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/20 focus:outline-none focus:border-cyan-400/50 focus:bg-cyan-400/5 transition-all resize-none"
+                    placeholder="How can we help you?"
+                    className="w-full py-3.5 sm:py-4 px-5 sm:px-6 bg-white/5 border border-white/10 rounded-2xl text-white text-sm sm:text-base placeholder-white/20 focus:outline-none focus:border-cyan-400/50 focus:bg-cyan-400/5 transition-all resize-none"
                   />
                 </div>
 

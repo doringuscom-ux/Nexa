@@ -58,12 +58,24 @@ const countryCodes = [
 ];
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    message: "",
-    countryCode: "+91", // Default country code
+  const [formData, setFormData] = useState(() => {
+    const defaultData = {
+      name: "",
+      phone: "",
+      email: "",
+      message: "",
+      countryCode: "+91",
+    };
+    const savedData = localStorage.getItem("nexa_lead_user_data");
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        return { ...defaultData, ...parsed, message: "" }; // Don't pre-fill message
+      } catch (error) {
+        console.error("Error parsing saved user data:", error);
+      }
+    }
+    return defaultData;
   });
 
   const [loading, setLoading] = useState(false);
@@ -97,6 +109,16 @@ export default function Contact() {
       const response = await axios.post("/api/contact", submissionData);
       console.log("Response:", response.data);
       alert("Message Sent Successfully! 🚀");
+
+      // Save user data for auto-fill in other forms
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        countryCode: formData.countryCode
+      };
+      localStorage.setItem("nexa_lead_user_data", JSON.stringify(userData));
+
       setFormData({
         name: "",
         phone: "",
@@ -243,11 +265,13 @@ export default function Contact() {
                     <i className="fas fa-user absolute left-[18px] text-cyan-400 opacity-70 z-10 text-lg"></i>
                     <input
                       type="text"
+                      id="contact-name"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Full name"
                       required
+                      autoComplete="name"
                       className="w-full py-[18px] pl-[52px] pr-[18px] bg-white/2 border border-white/5 rounded-[20px] text-white placeholder-white/25 shadow-inner focus:outline-none focus:border-cyan-400 focus:bg-cyan-400/5 focus:ring-4 focus:ring-cyan-400/10"
                     />
                   </div>
@@ -259,11 +283,13 @@ export default function Contact() {
                     <i className="fas fa-envelope absolute left-[18px] text-cyan-400 opacity-70 z-10 text-lg"></i>
                     <input
                       type="email"
+                      id="contact-email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="Email address"
                       required
+                      autoComplete="email"
                       className="w-full py-[18px] pl-[52px] pr-[18px] bg-white/2 border border-white/5 rounded-[20px] text-white placeholder-white/25 shadow-inner focus:outline-none focus:border-cyan-400 focus:bg-cyan-400/5 focus:ring-4 focus:ring-cyan-400/10"
                     />
                   </div>
@@ -295,11 +321,13 @@ export default function Contact() {
 
                   <input
                     type="tel"
+                    id="contact-phone"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="Phone number"
                     required
+                    autoComplete="tel"
                     className="flex-1 py-[18px] px-4 bg-transparent border-none text-white placeholder-white/25 focus:outline-none"
                   />
 

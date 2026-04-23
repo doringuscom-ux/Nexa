@@ -3,11 +3,23 @@ import axios from "../../../Protected/axiosPublic";
 import { UserIcon, EnvelopeIcon, PhoneIcon, ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/outline";
 
 export default function BlogSidebarForm() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    message: "",
+  const [formData, setFormData] = useState(() => {
+    const defaultData = {
+      name: "",
+      email: "",
+      phone: "",
+      message: "",
+    };
+    const savedData = localStorage.getItem("nexa_lead_user_data");
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        return { ...defaultData, ...parsed, message: "" };
+      } catch (error) {
+        console.error("Error parsing saved user data:", error);
+      }
+    }
+    return defaultData;
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -24,6 +36,17 @@ export default function BlogSidebarForm() {
     try {
       await axios.post("/api/contact", formData);
       setSuccess(true);
+      
+      // Save user data for auto-fill in other forms
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        // Since this form doesn't have countryCode, we keep what's already in localStorage if any
+        countryCode: JSON.parse(localStorage.getItem("nexa_lead_user_data") || "{}").countryCode || "+91"
+      };
+      localStorage.setItem("nexa_lead_user_data", JSON.stringify(userData));
+
       setFormData({ name: "", email: "", phone: "", message: "" });
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -62,11 +85,13 @@ export default function BlogSidebarForm() {
           <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
           <input 
             type="text" 
+            id="sidebar-name"
             name="name" 
             placeholder="Your Name" 
             value={formData.name}
             onChange={handleChange}
             required
+            autoComplete="name"
             className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
           />
         </div>
@@ -75,11 +100,13 @@ export default function BlogSidebarForm() {
           <EnvelopeIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
           <input 
             type="email" 
+            id="sidebar-email"
             name="email" 
             placeholder="Email Address" 
             value={formData.email}
             onChange={handleChange}
             required
+            autoComplete="email"
             className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
           />
         </div>
@@ -88,11 +115,13 @@ export default function BlogSidebarForm() {
           <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
           <input 
             type="tel" 
+            id="sidebar-phone"
             name="phone" 
             placeholder="Phone Number" 
             value={formData.phone}
             onChange={handleChange}
             required
+            autoComplete="tel"
             className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm text-white placeholder-white/20 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
           />
         </div>
