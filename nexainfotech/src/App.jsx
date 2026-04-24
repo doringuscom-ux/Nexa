@@ -36,6 +36,7 @@ import SeoLoginPage from "./Pages/Admin/SeoLoginPage";
 import SeoDashboard from "./Pages/Admin/SeoDashboard";
 import ProtectedRouteSeo from "./Protected/ProtectedRouteSeo";
 import SeoLayout from "./Component/layout/SeoLayout";
+import ServicesDirectoryPage from "./Pages/ServicesDirectoryPage";
 
 function AdminLoginWrapper() {
   const [status, setStatus] = useState("loading");
@@ -136,6 +137,8 @@ function App() {
         />
 
         <Route path="/contact" element={<ContactPage />} />
+
+        <Route path="/best-digital-marketing-agency-near-you" element={<ServicesDirectoryPage />} />
 
         <Route path="/admin/login" element={<AdminLoginWrapper />} />
 
