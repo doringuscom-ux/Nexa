@@ -323,7 +323,7 @@ export default function SingleBlog() {
                 <img
                   src={blog.image || "https://images.unsplash.com/photo-1540553016722-983e48a2cd10?q=80&w=2070&auto=format&fit=crop"}
                   alt={blog.title}
-                  className="relative w-full h-[220px] sm:h-[300px] md:h-[400px] object-cover rounded-[28px] md:rounded-[40px] shadow-2xl border border-white/10 transition-transform duration-700 group-hover:scale-[1.02]"
+                  className="relative w-full h-auto max-h-[220px] sm:max-h-[300px] md:max-h-[450px] object-contain rounded-[28px] md:rounded-[40px] shadow-2xl border border-white/10 transition-transform duration-700 group-hover:scale-[1.02]"
                   onError={(e) => { e.target.src = 'https://via.placeholder.com/1200x800?text=Blog+Cover'; }}
                 />
               </div>
