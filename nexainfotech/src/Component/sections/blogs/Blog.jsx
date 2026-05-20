@@ -94,40 +94,35 @@ export default function Blog() {
              </div>
         ) : featuredBlog && activeCategory === "All" && (
           <div 
-            className="relative h-[380px] sm:h-[450px] md:h-[550px] w-full group cursor-pointer transition-all duration-700 animate-fadeInUp overflow-hidden rounded-[32px] sm:rounded-[40px] mb-16 md:mb-24 shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
+            className="group cursor-pointer transition-all duration-700 animate-fadeInUp mb-16 md:mb-24 flex flex-col gap-6"
             onClick={() => {
               window.scrollTo(0, 0);
               navigate(`/${featuredBlog.slug || featuredBlog._id}`);
             }}
           >
-            {/* background image */}
-            <img 
-                src={featuredBlog.image || "https://via.placeholder.com/1200x600"} 
-                alt={featuredBlog.title}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
-            />
-            
-            {/* gradient overlay */}
-            <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/30 to-transparent opacity-95 group-hover:opacity-100 transition-opacity duration-500" />
-            
-            {/* content */}
-            <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8 md:p-12 flex flex-col justify-end">
-              <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                <span className="text-white text-base sm:text-xl md:text-2xl font-medium mb-2 sm:mb-3 block">
-                  {featuredBlog.category || "General"}
-                </span>
-                <h2 className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-8 leading-tight max-w-4xl tracking-tight line-clamp-2 sm:line-clamp-none">
-                  {featuredBlog.title}
-                </h2>
-                <span className="text-white/60 text-sm sm:text-lg md:text-xl font-medium">
-                  {new Date(featuredBlog.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </span>
+            {/* Image Container */}
+            <div className="relative h-[380px] sm:h-[450px] md:h-[550px] w-full overflow-hidden rounded-[32px] sm:rounded-[40px] shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+              {/* background image */}
+              <img 
+                  src={featuredBlog.image || "https://via.placeholder.com/1200x600"} 
+                  alt={featuredBlog.title}
+                  className="absolute inset-0 w-full h-full object-contain bg-[#0a0a0a] transition-transform duration-[2s] group-hover:scale-105"
+              />
+              
+              {/* circle icon */}
+              <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border border-white/20 flex items-center justify-center bg-black/20 group-hover:bg-white group-hover:text-black transition-all duration-500 group-hover:scale-110">
+                <ArrowUpRightIcon className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 transform group-hover:rotate-0 transition-transform duration-500" />
               </div>
             </div>
 
-            {/* circle icon */}
-            <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border border-white/20 flex items-center justify-center bg-black/20 group-hover:bg-white group-hover:text-black transition-all duration-500 group-hover:scale-110">
-              <ArrowUpRightIcon className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 transform group-hover:rotate-0 transition-transform duration-500" />
+            {/* Title / Info Below Image */}
+            <div className="px-2 sm:px-4">
+              <span className="text-[#a0a0a0] text-sm sm:text-lg font-medium mb-2 block">
+                {featuredBlog.category || "General"} • {new Date(featuredBlog.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white group-hover:text-purple-400 transition-colors duration-300">
+                {featuredBlog.title}
+              </h2>
             </div>
           </div>
         )}
@@ -151,46 +146,41 @@ export default function Blog() {
           </div>
         </div>
 
-        {/* ── Blogs Grid (Compact 3-Column Layout) ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        {/* ── Blogs Grid (2-Column Layout) ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
           {!loading && displayedBlogs.map((blog, index) => (
             <div 
               key={blog._id} 
-              className="relative aspect-[348/350] group cursor-pointer transition-all duration-700 animate-fadeInUp overflow-hidden rounded-[48px]"
+              className="group cursor-pointer transition-all duration-700 animate-fadeInUp flex flex-col gap-4"
               style={{ animationDelay: `${0.1 * (index % 6)}s` }}
               onClick={() => {
                 window.scrollTo(0, 0);
                 navigate(`/${blog.slug || blog._id}`);
               }}
             >
-              {/* background image */}
-              <img 
-                  src={blog.image || "https://via.placeholder.com/800x800"} 
-                  alt={blog.title}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110"
-              />
-              
-              {/* gradient overlay */}
-              <div className="absolute inset-0 bg-linear-to-t from-black via-black/20 to-transparent opacity-95 group-hover:opacity-100 transition-opacity duration-500" />
-              
-              {/* content */}
-              <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8 flex flex-col justify-end">
-                <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                  <span className="text-white text-sm sm:text-lg font-medium mb-1 block">
-                    {blog.category || "General"}
-                  </span>
-                  <h3 className="text-lg sm:text-xl md:text-2xl lg:text-[28px] font-bold text-white mb-3 leading-tight line-clamp-3">
-                    {blog.title}
-                  </h3>
-                  <span className="text-white/60 text-xs sm:text-base font-medium">
-                    {new Date(blog.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </span>
+              {/* Image Container */}
+              <div className="relative aspect-[16/10] overflow-hidden rounded-[32px] sm:rounded-[48px]">
+                {/* background image */}
+                <img 
+                    src={blog.image || "https://via.placeholder.com/800x800"} 
+                    alt={blog.title}
+                    className="absolute inset-0 w-full h-full object-contain bg-[#0a0a0a] transition-transform duration-[1.5s] group-hover:scale-110"
+                />
+                
+                {/* circle icon */}
+                <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/20 flex items-center justify-center bg-[#030712] group-hover:bg-white group-hover:text-black transition-all duration-500 group-hover:scale-110">
+                  <ArrowUpRightIcon className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:rotate-0 transition-transform duration-500" />
                 </div>
               </div>
 
-              {/* circle icon */}
-              <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/20 flex items-center justify-center bg-[#030712] group-hover:bg-white group-hover:text-black transition-all duration-500 group-hover:scale-110">
-                <ArrowUpRightIcon className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:rotate-0 transition-transform duration-500" />
+              {/* Title / Info Below Image */}
+              <div className="px-2">
+                <span className="text-[#a0a0a0] text-xs sm:text-sm font-medium mb-1 block">
+                  {blog.category || "General"} • {new Date(blog.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white group-hover:text-purple-400 transition-colors duration-300 line-clamp-2">
+                  {blog.title}
+                </h3>
               </div>
             </div>
           ))}

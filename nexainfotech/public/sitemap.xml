@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
-<!-- Generated: 2026-05-19 | URLs: 112 -->
+<!-- Generated: 2026-05-20 | URLs: 113 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://nexainfotech.com</loc>
@@ -661,6 +661,12 @@
     <lastmod>2026-03-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://nexainfotech.com/blog/e-commerce-website-development-services</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://nexainfotech.com/blog/common-digital-marketing-mistakes-that-hurt-your-business</loc>
