@@ -10,8 +10,8 @@ router.post("/login", (req, res) => {
     return res.status(400).json({ message: "Email and password required" });
   }
 
-  // Hardcoded credentials - ideally should be from database
-  if (email === "admin@gmail.com" && password === "123456") {
+  // Check credentials against environment variables
+  if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
     req.session.admin = {
       email,
       loginTime: new Date().toISOString()
@@ -28,7 +28,7 @@ router.post("/login", (req, res) => {
 
 /* CHECK AUTH (Hardened) */
 router.get("/check-auth", (req, res) => {
-  if (req.session?.admin && req.session.admin.email === "admin@gmail.com") {
+  if (req.session?.admin && req.session.admin.email === process.env.ADMIN_EMAIL) {
     return res.json({
       authenticated: true,
       admin: { email: req.session.admin.email }

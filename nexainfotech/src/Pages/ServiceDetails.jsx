@@ -154,7 +154,7 @@ export default function ServiceDetails() {
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[1000px] h-[1000px] bg-cyan-500/[0.07] rounded-full blur-[150px] animate-[pulse_10s_ease-in-out_infinite]"></div>
         <div className="absolute bottom-[-20%] right-[-10%] w-[1000px] h-[1000px] bg-blue-600/[0.07] rounded-full blur-[150px] animate-[pulse_15s_ease-in-out_infinite_reverse] delay-2000"></div>
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.015] mix-blend-overlay"></div>
+        <div className="absolute inset-0 opacity-[0.015] mix-blend-overlay"></div>
       </div>
 
       <AnimatePresence>
