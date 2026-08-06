@@ -8,6 +8,9 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const https = require("https");
 const http = require("http");
+const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
+const rateLimit = require("express-rate-limit");
 
 const Service = require("./models/Service");
 const Blog = require("./models/Blog");
@@ -106,6 +109,34 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+/* ================= SECURITY MIDDLEWARE ================= */
+// 1. Set security HTTP headers
+app.use(helmet({
+  crossOriginResourcePolicy: false, // Allow loading images/resources across origins
+}));
+
+// 2. Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// 3. Global Rate Limiting to prevent brute-force and DDoS
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: { message: "Too many requests from this IP, please try again after 15 minutes" }
+});
+// Apply global rate limiter to all API routes
+app.use("/api", globalLimiter);
+
+// 4. Stricter Rate Limiting for Admin/Auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 login requests per window
+  message: { message: "Too many login attempts from this IP, please try again after 15 minutes" }
+});
+app.use("/api/admin/login", authLimiter);
 
 /* ================= SESSION ================= */
 app.use(session({
