@@ -1,11 +1,8 @@
 User-agent: *
 Allow: /
 
-# Disallow sensitive admin and SEO routes
-Disallow: /admin
-Disallow: /admin/*
-Disallow: /seo
-Disallow: /seo/*
+# We do NOT disallow admin/seo routes here anymore! 
+# If we block them, Google can't read their 'noindex' tags.
 
 # Point to the dynamic sitemap
 Sitemap: https://nexainfotech.com/sitemap.xml

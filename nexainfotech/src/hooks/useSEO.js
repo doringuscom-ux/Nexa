@@ -14,6 +14,15 @@ const useSEO = () => {
       location.pathname === "/seo";
 
     if (isDashboardRoute) {
+      // FORCE noindex, nofollow for admin routes so Google officially removes them from the index
+      let robotsMeta = document.querySelector("meta[name='robots']");
+      if (!robotsMeta) {
+        robotsMeta = document.createElement("meta");
+        robotsMeta.name = "robots";
+        document.head.appendChild(robotsMeta);
+      }
+      robotsMeta.setAttribute("content", "noindex, nofollow");
+      document.title = "Dashboard | Nexa Infotech";
       return;
     }
 
