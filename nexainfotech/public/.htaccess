@@ -1,6 +1,11 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+  
+  # Internally route sitemap requests to PHP proxy scripts
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+  RewriteRule ^sitemap\.xsl$ sitemap_xsl.php [L]
+
   RewriteRule ^index\.html$ - [L]
   
   # Redirect favicon.ico to our square favicon to avoid 404s and meet Google requirements
