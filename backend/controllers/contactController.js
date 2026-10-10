@@ -55,22 +55,21 @@ const createContact = async (req, res) => {
     }
 
     // 3. Email bhejo admin ko (background mein)
-    if (process.env.RESEND_API_KEY) {
+    if (process.env.GOOGLE_SCRIPT_WEBAPP_URL || process.env.RESEND_API_KEY) {
       // Don't await - let it run in background
       sendAdminEmail({ name, phone, email, message })
         .then(result => {
           if (result.success) {
-            console.log(`✅ Admin email sent for contact ${newMessage._id}. Message ID: ${result.messageId}`);
+            console.log(`✅ Admin email sent for contact ${newMessage._id}.`);
           } else {
             console.log(`⚠️ Admin email failed for contact ${newMessage._id}:`, result.error);
-            console.log('💡 Note: onboarding@resend.dev requires ADMIN_EMAIL to match your Resend account email.');
           }
         })
         .catch(err => {
           console.error(`❌ Email error for contact ${newMessage._id}:`, err);
         });
     } else {
-      console.log('⚠️ Skipping email: RESEND_API_KEY is missing in .env');
+      console.log('⚠️ Skipping email: Neither GOOGLE_SCRIPT_WEBAPP_URL nor RESEND_API_KEY is configured in .env');
     }
 
     // 3. Success response

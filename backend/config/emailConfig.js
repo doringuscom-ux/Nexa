@@ -5,11 +5,43 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@nexainfotech.in";
 const FROM_EMAIL = process.env.FROM_EMAIL || "Nexa Infotech <onboarding@resend.dev>";
+const GOOGLE_SCRIPT_WEBAPP_URL = process.env.GOOGLE_SCRIPT_WEBAPP_URL;
 
 /**
  * Send email notification to admin when a new contact form is submitted
  */
 const sendAdminEmail = async ({ name, phone, email, message }) => {
+  // 1. Agar Google Apps Script URL diya hai to usse direct bhejo (No domain verification needed, Free & Fast)
+  if (GOOGLE_SCRIPT_WEBAPP_URL) {
+    try {
+      console.log("📤 Sending email via Google Apps Script Web App...");
+      const response = await fetch(GOOGLE_SCRIPT_WEBAPP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, email, message }),
+      });
+
+      const text = await response.text();
+      let result = {};
+      try {
+        result = JSON.parse(text);
+      } catch (e) {
+        result = { raw: text };
+      }
+
+      console.log("✅ Mail sent successfully via Google Apps Script:", result);
+      return { success: true, via: "google_apps_script", result };
+    } catch (err) {
+      console.error("❌ Google Apps Script email failed:", err.message);
+      // Agar fail hua toh niche Resend par fallback karega
+    }
+  }
+
+  // 2. Resend Fallback
+  if (!process.env.RESEND_API_KEY) {
+    return { success: false, error: "Neither GOOGLE_SCRIPT_WEBAPP_URL nor RESEND_API_KEY is configured" };
+  }
+
   try {
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
