@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../../../Protected/axiosPublic";
 import BlogSidebarForm from "./BlogSidebarForm";
+import { markNotFound } from "../../../hooks/useSEO";
 
 export default function SingleBlog() {
   const { slug } = useParams();
@@ -33,6 +34,8 @@ export default function SingleBlog() {
       } catch (error) {
         console.error("Error fetching blog content:", error);
         setError(error.response?.data?.message || "Failed to load content.");
+        // Only a real 404 is "not found" — a slow/sleeping backend must not deindex the page
+        if (error.response?.status === 404) markNotFound();
       } finally {
         setLoading(false);
       }

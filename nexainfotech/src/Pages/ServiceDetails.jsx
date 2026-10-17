@@ -11,6 +11,7 @@ import OurExperts from "../Component/sections/home/OurExperts";
 import CallToAction from "../Component/sections/home/CallToAction";
 import TestimonialsSection from "../Component/sections/home/TestimonialsSection";
 import CaseStudies from "../Component/sections/services/CaseStudies";
+import { markNotFound } from "../hooks/useSEO";
 import {
   HomeIcon,
   ChevronRightIcon,
@@ -69,9 +70,12 @@ export default function ServiceDetails() {
           setError(null);
         } else {
           setError(response.data.message || "Service not found");
+          markNotFound();
         }
       } catch (err) {
         console.error("Error fetching service:", err);
+        // Only a real 404 is "not found" — a slow/sleeping backend must not deindex the page
+        if (err.response?.status === 404) markNotFound();
         setError(err.response?.data?.message || "Failed to load service");
       } finally {
         setLoading(false);

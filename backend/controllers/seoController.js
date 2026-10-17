@@ -1,5 +1,22 @@
 const Seo = require("../models/Seo");
 const Service = require("../models/Service");
+const Blog = require("../models/Blog");
+const Page = require("../models/Page");
+
+const STATIC_PAGES = ["/", "/about", "/blog", "/gallery", "/portfolio", "/contact", "/best-digital-marketing-agency-near-you"];
+
+// True only if the path belongs to a real static page, service, blog or custom page
+const pageExists = async (pageUrl) => {
+  if (STATIC_PAGES.includes(pageUrl)) return true;
+  const slug = pageUrl.replace(/^\/(blog\/)?/, "");
+  if (!slug) return false;
+  const [service, blog, page] = await Promise.all([
+    Service.exists({ slug: { $in: [slug, `/${slug}`] } }),
+    Blog.exists({ slug }),
+    Page.exists({ pageId: { $in: [slug, `/${slug}`] } }),
+  ]);
+  return Boolean(service || blog || page);
+};
 
 // Get all SEO entries
 exports.getAllSeo = async (req, res) => {
@@ -161,6 +178,10 @@ exports.autoUpdateSeo = async (req, res) => {
       }
       return res.json({ message: "SEO record already exists, skipping update", seo });
     } else {
+      if (!(await pageExists(pageUrl))) {
+        return res.status(404).json({ message: "Page does not exist, SEO record not created" });
+      }
+
       // Create new SEO record
       const newSeo = new Seo({
         pageUrl,

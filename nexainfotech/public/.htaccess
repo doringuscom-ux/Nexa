@@ -1,6 +1,14 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  # Force non-www so Google sees only one version of every page (http->https is already done by the host)
+  RewriteCond %{HTTP_HOST} ^www\. [NC]
+  RewriteRule ^(.*)$ https://nexainfotech.com/$1 [R=301,L]
+
+  # Remove trailing slash (/about/ -> /about) to avoid duplicate URLs
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.+)/$ /$1 [R=301,L]
   
   # Internally route sitemap requests to PHP proxy scripts
   RewriteRule ^sitemap\.xml$ sitemap.php [L]

@@ -282,7 +282,7 @@ function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       {!isDashboardRoute && <Footer />}
