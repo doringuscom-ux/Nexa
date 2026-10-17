@@ -186,7 +186,7 @@ exports.autoUpdateSeo = async (req, res) => {
       const newSeo = new Seo({
         pageUrl,
         metaTitle,
-        metaDescription: `SEO description for ${metaTitle}. Please update this in Admin Panel.`,
+        metaDescription: "", // left empty so the page's own text is used until an SEO user writes one
         metaKeywords: "",
         canonicalUrl: pageUrl,
         robotsTag: "index, follow",

@@ -76,7 +76,11 @@ export default function ServiceDetails() {
         console.error("Error fetching service:", err);
         // Only a real 404 is "not found" — a slow/sleeping backend must not deindex the page
         if (err.response?.status === 404) markNotFound();
-        setError(err.response?.data?.message || "Failed to load service");
+        setError(
+          err.response?.status === 429
+            ? "Server is busy right now. Please refresh the page in a moment."
+            : err.response?.data?.message || "Failed to load service"
+        );
       } finally {
         setLoading(false);
       }

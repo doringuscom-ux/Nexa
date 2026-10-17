@@ -119,16 +119,26 @@ app.use(helmet({
 // 2. Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
-// 3. Global Rate Limiting to prevent brute-force and DDoS
-const globalLimiter = rateLimit({
+// 3. Rate Limiting to prevent brute-force and DDoS
+// One page view fires several GET calls (navbar, hero, services, seo...), and Googlebot crawls
+// many pages from few IPs — so reads get a generous limit and writes keep the strict one.
+const readLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  max: 2000, // ~150+ page views per IP per window
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skip: (req) => req.method !== "GET",
   message: { message: "Too many requests from this IP, please try again after 15 minutes" }
 });
-// Apply global rate limiter to all API routes
-app.use("/api", globalLimiter);
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 write requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method === "GET" || req.method === "OPTIONS",
+  message: { message: "Too many requests from this IP, please try again after 15 minutes" }
+});
+app.use("/api", readLimiter, writeLimiter);
 
 // 4. Stricter Rate Limiting for Admin/Auth endpoints
 const authLimiter = rateLimit({

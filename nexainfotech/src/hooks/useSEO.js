@@ -44,6 +44,19 @@ const setCanonical = (href) => {
   link.setAttribute("href", href);
 };
 
+// Old auto-created records hold placeholder text that must never reach Google
+const isPlaceholderDescription = (text) =>
+  !text || /Please update this in Admin Panel|^SEO description for /i.test(text);
+
+// Fallback description: the page's first real paragraph, trimmed to ~155 chars
+const descriptionFromPage = () => {
+  const paragraph = [...document.querySelectorAll("main p, #root p")]
+    .map((p) => p.innerText.replace(/\s+/g, " ").trim())
+    .find((text) => text.length >= 80);
+  if (!paragraph) return null;
+  return paragraph.length > 155 ? `${paragraph.slice(0, 152).replace(/\s+\S*$/, "")}...` : paragraph;
+};
+
 const NOT_FOUND_TITLE = "Page Not Found | Nexa Infotech";
 
 // The flag is tied to the path it was set on, so it never leaks to the next page and
@@ -104,6 +117,15 @@ const useSEO = () => {
       }, 1000);
     };
 
+    let descriptionTimer;
+    const scheduleDescriptionFallback = () => {
+      descriptionTimer = setTimeout(() => {
+        if (isStale()) return;
+        const text = descriptionFromPage();
+        if (text) setMeta("description", text);
+      }, 1500);
+    };
+
     const updateSEO = async () => {
       try {
         // Encode the pathname to handle special characters in URLs correctly
@@ -114,7 +136,11 @@ const useSEO = () => {
         console.log(`🔍 SEO Data for ${currentPath}:`, seoData);
 
         if (seoData.metaTitle) document.title = seoData.metaTitle;
-        if (seoData.metaDescription) setMeta("description", seoData.metaDescription);
+        if (!isPlaceholderDescription(seoData.metaDescription)) {
+          setMeta("description", seoData.metaDescription);
+        } else {
+          scheduleDescriptionFallback();
+        }
         if (seoData.metaKeywords) setMeta("keywords", seoData.metaKeywords);
         setMeta("robots", seoData.robotsTag || "index, follow");
 
@@ -132,6 +158,7 @@ const useSEO = () => {
         if (error.response?.status === 404) {
           console.log(`ℹ️ No custom SEO found for ${currentPath}, attempting Auto SEO...`);
           scheduleAutoSeo();
+          scheduleDescriptionFallback();
         } else {
           console.error("❌ SEO Update Error:", error);
         }
@@ -143,6 +170,7 @@ const useSEO = () => {
     return () => {
       cancelled = true;
       clearTimeout(autoSeoTimer);
+      clearTimeout(descriptionTimer);
     };
   }, [location.pathname]);
 };
